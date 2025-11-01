@@ -1,0 +1,2404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Complete Jira CLI integration via MCP - 48 powerful AI tools for automation, worklog tracking, sprint management, and more">
+    <meta name="keywords" content="jira, mcp, model context protocol, ai, automation, jira-cli, atlassian, issue tracking">
+    <title>Jira MCP Server v2.0 - AI-Powered Jira Automation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism-themes/1.9.0/prism-dracula.min.css" integrity="sha512-oS5yvzKqjSwiC3WEoSVYbHgyGIcvnyUDXyafLf1x2bQBkR3f5U6JHD+a3yU+Cy9VGL/5PRxF1izEF7vHjBc+lQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00B8D4;
+            --secondary: #7C4DFF;
+            --accent: #FF4081;
+            --bg: #0A0E27;
+            --surface: rgba(255, 255, 255, 0.05);
+            --surface-hover: rgba(255, 255, 255, 0.08);
+            --text: #FFFFFF;
+            --text-muted: rgba(255, 255, 255, 0.6);
+            --border: rgba(255, 255, 255, 0.1);
+            --success: #4CAF50;
+            --warning: #FF9800;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+
+        main {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Animated Background */
+        .bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 184, 212, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(124, 77, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(255, 64, 129, 0.1) 0%, transparent 40%);
+            animation: drift 20s ease-in-out infinite;
+        }
+
+        @keyframes drift {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(30px, 30px) scale(1.1); }
+        }
+
+        /* Floating Jira Logos - Sweep Effect */
+        .floating-logo {
+            position: fixed;
+            width: 840px;
+            height: 840px;
+            opacity: 0;
+            z-index: 0;
+            pointer-events: none;
+            filter: blur(4px) saturate(112%) brightness(1.06);
+            mix-blend-mode: screen;
+            will-change: transform, opacity, filter;
+        }
+
+        .floating-logo svg {
+            width: 100%;
+            height: 100%;
+            opacity: 0.35;
+            filter: blur(4px) saturate(110%) brightness(1.05);
+        }
+
+        .floating-logo-1 {
+            top: -10%;
+            animation: sweep1 20s linear infinite;
+        }
+
+        .floating-logo-2 {
+            top: 35%;
+            animation: sweep2 24s linear infinite 8s;
+        }
+
+        .floating-logo-3 {
+            bottom: -25%;
+            animation: sweep3 22s linear infinite 16s;
+        }
+
+        .floating-logo-4 {
+            display: none;
+        }
+
+        .floating-logo-5 {
+            display: none;
+        }
+
+        @keyframes sweep1 {
+            0% {
+                opacity: 0;
+                transform: translateX(-130vw) rotate(45deg) scale(1.2);
+            }
+            10% {
+                opacity: 0.25;
+                transform: translateX(-80vw) rotate(45deg) scale(1.35);
+            }
+            50% {
+                opacity: 0.32;
+                transform: translateX(10vw) rotate(45deg) scale(1.5);
+            }
+            90% {
+                opacity: 0.22;
+                transform: translateX(120vw) rotate(45deg) scale(1.35);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(150vw) rotate(45deg) scale(1.2);
+            }
+        }
+
+        @keyframes sweep2 {
+            0% {
+                opacity: 0;
+                transform: translateX(-150vw) rotate(45deg) scale(1.4);
+            }
+            12% {
+                opacity: 0.25;
+                transform: translateX(-90vw) rotate(45deg) scale(1.55);
+            }
+            55% {
+                opacity: 0.32;
+                transform: translateX(5vw) rotate(45deg) scale(1.7);
+            }
+            92% {
+                opacity: 0.22;
+                transform: translateX(140vw) rotate(45deg) scale(1.55);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(170vw) rotate(45deg) scale(1.4);
+            }
+        }
+
+        @keyframes sweep3 {
+            0% {
+                opacity: 0;
+                transform: translateX(-140vw) rotate(45deg) scale(1.25);
+            }
+            15% {
+                opacity: 0.25;
+                transform: translateX(-85vw) rotate(45deg) scale(1.4);
+            }
+            60% {
+                opacity: 0.32;
+                transform: translateX(15vw) rotate(45deg) scale(1.55);
+            }
+            88% {
+                opacity: 0.22;
+                transform: translateX(135vw) rotate(45deg) scale(1.4);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(165vw) rotate(45deg) scale(1.25);
+            }
+        }
+
+        /* Glass Header */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10, 14, 39, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        nav {
+            display: flex;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        nav a:hover { color: var(--primary); }
+
+        /* Mobile Menu */
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            z-index: 1001;
+        }
+
+        .menu-toggle span {
+            width: 24px;
+            height: 2px;
+            background: var(--text);
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .menu-toggle.active span:nth-child(1) {
+            transform: rotate(45deg) translate(7px, 7px);
+        }
+
+        .menu-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .menu-toggle.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -7px);
+        }
+
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 64px;
+            right: -100%;
+            width: 280px;
+            height: calc(100vh - 64px);
+            background: rgba(10, 14, 39, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-left: 1px solid var(--border);
+            transition: right 0.3s ease;
+            z-index: 1000;
+            padding: 2rem 0;
+            box-shadow: -4px 0 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .mobile-menu.active {
+            right: 0;
+        }
+
+        .mobile-menu nav {
+            display: flex !important;
+            flex-direction: column;
+            gap: 0;
+            padding: 0;
+        }
+
+        .mobile-menu nav a {
+            display: block;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            color: var(--text) !important;
+            text-decoration: none;
+            border-bottom: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .mobile-menu nav a:hover {
+            color: var(--primary) !important;
+            background: var(--surface-hover);
+            padding-left: 2.5rem;
+        }
+
+        .mobile-overlay {
+            position: fixed;
+            top: 64px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .mobile-overlay.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        /* Compact Hero */
+        .hero {
+            padding: 4rem 2rem 3rem;
+            text-align: center;
+            position: relative;
+            z-index: 50;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.375rem 0.875rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 5vw, 3.5rem);
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            font-size: 1.125rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta {
+            display: inline-flex;
+            gap: 1rem;
+            position: relative;
+            z-index: 200;
+            margin: 0 auto 2.75rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            z-index: 200;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 184, 212, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--surface-hover);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text);
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-ghost:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        /* Compact Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1.25rem;
+            padding: 2rem 2rem 3rem;
+            max-width: 800px;
+            margin: 2.75rem auto 0;
+        }
+
+        .stat {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.75rem 1.25rem;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .stat:hover {
+            background: var(--surface-hover);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .stat-num {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Compact Features */
+        section {
+            padding: 4rem 2rem 3rem;
+        }
+
+        section:first-of-type {
+            padding-top: 3rem;
+        }
+
+        .section-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-top: 1rem;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.2s;
+        }
+
+        .card:hover {
+            background: var(--surface-hover);
+            border-color: var(--primary);
+            transform: translateY(-3px);
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* Compact Code */
+        .code-block {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            max-width: 700px;
+            margin: 0 auto 2rem;
+            position: relative;
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--border);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .copy-btn {
+            margin-left: auto;
+            padding: 0.375rem 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .copy-btn.copied {
+            color: var(--success);
+            border-color: var(--success);
+        }
+
+        .code-content {
+            display: flex;
+        }
+
+        .code-highlight {
+            position: relative;
+        }
+
+        pre[class*="language-"] {
+            background: transparent !important;
+            color: #F8F8F2;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9rem;
+            line-height: 1.7;
+            text-shadow: 0 0 12px rgba(0, 184, 212, 0.25);
+        }
+
+        .token.property,
+        .token.punctuation.attr-name,
+        .token.attr-name {
+            color: #8BE9FD;
+        }
+
+        .token.string,
+        .token.template-punctuation,
+        .token.inserted {
+            color: #F1FA8C;
+        }
+
+        .token.number,
+        .token.boolean,
+        .token.constant,
+        .token.symbol {
+            color: #FF79C6;
+        }
+
+        .token.punctuation,
+        .token.operator {
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .token.keyword,
+        .token.builtin {
+            color: #BD93F9;
+        }
+
+        /* IDE Configuration Section */
+        .ide-config-intro {
+            max-width: 720px;
+            margin: 0 auto 2.5rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+
+        .ide-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .ide-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.5rem 0.9rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        }
+
+        .ide-tab img,
+        .ide-tab svg {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+        }
+
+        .ide-tab img {
+            opacity: 0.9;
+        }
+
+        .ide-tab.active {
+            border-color: var(--primary);
+            color: #FFFFFF;
+            transform: translateY(-2px);
+        }
+
+        .ide-tab:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+        .ide-panels {
+            max-width: 780px;
+            margin: 0 auto;
+        }
+
+        .ide-panel {
+            display: none;
+        }
+
+        .ide-panel.active {
+            display: block;
+        }
+
+        .ide-panel-desc {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 1.25rem;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .ide-config-intro {
+                text-align: left;
+            }
+
+            .ide-tab {
+                flex: 0 1 calc(50% - 0.4rem);
+                justify-content: center;
+                font-size: 0.78rem;
+                padding: 0.45rem 0.75rem;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .ide-tabs {
+                gap: 0.3rem;
+            }
+
+            .ide-tab {
+                flex: 0 1 calc(50% - 0.3rem);
+                font-size: 0.75rem;
+                padding: 0.4rem 0.6rem;
+            }
+        }
+
+        .line-numbers {
+            padding: 1.5rem 0.75rem;
+            text-align: right;
+            user-select: none;
+            color: rgba(255, 255, 255, 0.3);
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            background: rgba(0, 0, 0, 0.2);
+            min-width: 48px;
+        }
+
+        .line-numbers span {
+            display: block;
+        }
+
+        pre {
+            margin: 0;
+            padding: 1.5rem;
+            padding-left: 1rem;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            flex: 1;
+        }
+
+        code {
+            font-family: 'Monaco', 'Menlo', monospace;
+            color: var(--text);
+        }
+
+        .s { color: #A5D6A7; }
+        .k { color: #CE93D8; }
+        .c { color: #90A4AE; }
+
+        /* Examples Section */
+        .examples {
+            display: grid;
+            gap: 1rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .example {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .example:hover {
+            border-color: var(--primary);
+        }
+
+        .example-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.25rem;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s;
+        }
+
+        .example-header:hover {
+            background: var(--surface-hover);
+        }
+
+        .example-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+
+        .example-icon {
+            font-size: 1.125rem;
+        }
+
+        .expand-icon {
+            font-size: 1.25rem;
+            transition: transform 0.25s ease-in;
+            color: var(--text-muted);
+            transform: rotate(0deg);
+        }
+
+        .example-header:hover .expand-icon {
+            transform: rotate(16deg);
+        }
+
+        .example.expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+
+        .example.expanded .example-header:hover .expand-icon {
+            transform: rotate(180deg);
+        }
+
+        .example-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .example.expanded .example-body {
+            max-height: 3000px;
+            overflow-y: auto;
+        }
+
+        .example-content {
+            padding: 0 1.25rem 1.25rem;
+        }
+
+        .example-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+
+        .example-code {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            font-size: 0.8rem;
+            font-family: 'Monaco', 'Menlo', monospace;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .example-user {
+            color: var(--primary);
+        }
+
+        .example-ai {
+            color: var(--success);
+        }
+
+        /* Compact Tools Grid */
+        .tools {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .tool-category {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem;
+            transition: all 0.2s;
+        }
+
+        .tool-category:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .cat-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .cat-icon {
+            font-size: 1.25rem;
+        }
+
+        .cat-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .cat-count {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 0.125rem 0.5rem;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .tool-list {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* Installation Steps */
+        .install-steps {
+            display: grid;
+            gap: 1rem;
+            max-width: 700px;
+            margin: 2rem auto 0;
+        }
+
+        .step {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .step-num {
+            flex-shrink: 0;
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .step-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* JQL Examples */
+        .jql-examples {
+            display: grid;
+            gap: 1rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .jql-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .jql-card:hover {
+            border-color: var(--primary);
+        }
+
+        .jql-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.25rem;
+            cursor: default;
+            user-select: text;
+            transition: background 0.2s;
+        }
+
+        .jql-header:hover {
+            background: transparent;
+        }
+
+        .jql-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .jql-icon {
+            font-size: 1rem;
+        }
+
+        .jql-body {
+            max-height: none;
+            overflow: visible;
+            transition: none;
+        }
+
+        .jql-content {
+            padding: 0 1.25rem 1.25rem;
+        }
+
+        .jql-query {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.875rem;
+            font-size: 0.8rem;
+            font-family: 'Monaco', 'Menlo', monospace;
+            color: #A5D6A7;
+            line-height: 1.5;
+        }
+
+        /* Compact Footer */
+        footer {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 2rem 2rem 1.5rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-section h3 {
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .footer-section p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            line-height: 1.5;
+        }
+
+        .footer-section a {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .footer-link-icon {
+            width: 18px;
+            height: 18px;
+            min-width: 18px;
+            min-height: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: rgba(255, 255, 255, 0.85);
+            transition: color 0.2s ease;
+        }
+
+        .footer-link-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+            opacity: 0.85;
+            transition: opacity 0.2s ease;
+        }
+
+        .footer-link-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: currentColor;
+            stroke: currentColor;
+            opacity: 0.85;
+            transition: opacity 0.2s ease;
+        }
+
+        .footer-icon-placeholder {
+            font-size: 0.95rem;
+            color: inherit;
+        }
+
+        .footer-section a:hover {
+            color: var(--primary);
+        }
+
+        .footer-section a:hover .footer-link-icon {
+            color: #FFFFFF;
+        }
+
+        .footer-section a:hover .footer-link-icon img {
+            opacity: 1;
+        }
+
+        .footer-section a:hover .footer-link-icon svg {
+            opacity: 1;
+        }
+
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 2rem auto 0;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { padding: 0 1.1rem; }
+            section { padding: 3.25rem 1rem; }
+            nav { display: none !important; }
+            .menu-toggle { display: flex; }
+            .mobile-menu { display: block; }
+            .mobile-overlay { z-index: 999; }
+            .hero { padding: 3.75rem 1.25rem 3.25rem; }
+            .subtitle { font-size: 1rem; margin-bottom: 2.5rem; }
+            .cta { 
+                flex-direction: column; 
+                width: 100%;
+                gap: 0.85rem;
+                margin: 0 auto 3rem;
+            }
+            .btn { 
+                width: 100%; 
+                justify-content: center;
+                padding: 0.95rem 1.5rem;
+            }
+            .stats { 
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.5rem;
+                padding: 0 1.25rem 2.75rem;
+                margin: 2.5rem auto 0;
+            }
+            .stat {
+                padding: 1.85rem 1.25rem;
+            }
+            .stat-num {
+                font-size: 1.75rem;
+            }
+            .features { 
+                grid-template-columns: 1fr; 
+                gap: 1.75rem;
+            }
+            .tools { 
+                grid-template-columns: 1fr;
+                gap: 1.75rem;
+            }
+            .examples { gap: 1.75rem; }
+            .jql-examples { gap: 1.5rem; }
+            h1 { font-size: 2rem; }
+            .code-block {
+                border-radius: 8px;
+                margin: 0 -0.5rem 2.25rem;
+            }
+            .code-header {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.7rem;
+            }
+            .copy-btn {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.7rem;
+            }
+            pre {
+                padding: 1rem 0.75rem;
+                font-size: 0.75rem;
+            }
+            .line-numbers {
+                padding: 1rem 0.5rem;
+                font-size: 0.75rem;
+                min-width: 40px;
+            }
+            .install-steps {
+                gap: 1.25rem;
+            }
+            .step-num {
+                width: 28px;
+                height: 28px;
+                font-size: 0.8rem;
+            }
+            .step-title {
+                font-size: 0.9rem;
+            }
+            .step-desc {
+                font-size: 0.8rem;
+            }
+            .card {
+                padding: 1.65rem;
+            }
+            .tool-category {
+                padding: 1.1rem;
+            }
+            .example {
+                padding: 1.65rem;
+            }
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            .floating-logo {
+                width: 260px;
+                height: 260px;
+                filter: blur(4px) saturate(112%) brightness(1.06);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container { padding: 0 0.75rem; }
+            section { padding: 1.5rem 0.75rem; }
+            h1 { font-size: 1.75rem; }
+            .section-title { font-size: 1.5rem; }
+            .badge {
+                font-size: 0.7rem;
+                padding: 0.25rem 0.625rem;
+            }
+        }
+
+        /* Scroll animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .fade-in-up {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+        }
+
+        .fade-in-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .slide-in-left {
+            opacity: 0;
+            transform: translateX(-50px);
+            transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+        }
+
+        .slide-in-left.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .slide-in-right {
+            opacity: 0;
+            transform: translateX(50px);
+            transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+        }
+
+        .slide-in-right.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .scale-in {
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+
+        .scale-in.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Stagger animation delays */
+        .fade-in:nth-child(1) { transition-delay: 0s; }
+        .fade-in:nth-child(2) { transition-delay: 0.1s; }
+        .fade-in:nth-child(3) { transition-delay: 0.2s; }
+        .fade-in:nth-child(4) { transition-delay: 0.3s; }
+        .fade-in:nth-child(5) { transition-delay: 0.4s; }
+        .fade-in:nth-child(6) { transition-delay: 0.5s; }
+    </style>
+</head>
+<body>
+    <div class="bg"></div>
+
+    <!-- Floating Jira Logos with Sfumato Effect -->
+    <div class="floating-logo floating-logo-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="jira-float-1-a" gradientUnits="userSpaceOnUse" x1="22.034" y1="9.773" x2="17.118" y2="14.842" gradientTransform="scale(4)"><stop offset=".176" stop-color="#0052cc"/><stop offset="1" stop-color="#2684ff"/></linearGradient><linearGradient id="jira-float-1-b" gradientUnits="userSpaceOnUse" x1="16.641" y1="15.564" x2="10.957" y2="21.094" gradientTransform="scale(4)"><stop offset=".176" stop-color="#0052cc"/><stop offset="1" stop-color="#2684ff"/></linearGradient></defs><path d="M108.023 16H61.805c0 11.52 9.324 20.848 20.847 20.848h8.5v8.226c0 11.52 9.328 20.848 20.848 20.848V19.977A3.98 3.98 0 00108.023 16zm0 0" fill="#2684ff"/><path d="M85.121 39.04H38.902c0 11.519 9.325 20.847 20.844 20.847h8.504v8.226c0 11.52 9.328 20.848 20.848 20.848V43.016a3.983 3.983 0 00-3.977-3.977zm0 0" fill="url(#jira-float-1-a)"/><path d="M62.219 62.078H16c0 11.524 9.324 20.848 20.848 20.848h8.5v8.23c0 11.52 9.328 20.844 20.847 20.844V66.059a3.984 3.984 0 00-3.976-3.98zm0 0" fill="url(#jira-float-1-b)"/></svg>
+    </div>
+    <div class="floating-logo floating-logo-2">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="jira-float-2-a" gradientUnits="userSpaceOnUse" x1="22.034" y1="9.773" x2="17.118" y2="14.842" gradientTransform="scale(4)"><stop offset=".176" stop-color="#0052cc"/><stop offset="1" stop-color="#2684ff"/></linearGradient><linearGradient id="jira-float-2-b" gradientUnits="userSpaceOnUse" x1="16.641" y1="15.564" x2="10.957" y2="21.094" gradientTransform="scale(4)"><stop offset=".176" stop-color="#0052cc"/><stop offset="1" stop-color="#2684ff"/></linearGradient></defs><path d="M108.023 16H61.805c0 11.52 9.324 20.848 20.847 20.848h8.5v8.226c0 11.52 9.328 20.848 20.848 20.848V19.977A3.98 3.98 0 00108.023 16zm0 0" fill="#2684ff"/><path d="M85.121 39.04H38.902c0 11.519 9.325 20.847 20.844 20.847h8.504v8.226c0 11.52 9.328 20.848 20.848 20.848V43.016a3.983 3.983 0 00-3.977-3.977zm0 0" fill="url(#jira-float-2-a)"/><path d="M62.219 62.078H16c0 11.524 9.324 20.848 20.848 20.848h8.5v8.23c0 11.52 9.328 20.844 20.847 20.844V66.059a3.984 3.984 0 00-3.976-3.98zm0 0" fill="url(#jira-float-2-b)"/></svg>
+    </div>
+    <div class="floating-logo floating-logo-3">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="jira-float-3-a" gradientUnits="userSpaceOnUse" x1="22.034" y1="9.773" x2="17.118" y2="14.842" gradientTransform="scale(4)"><stop offset=".176" stop-color="#0052cc"/><stop offset="1" stop-color="#2684ff"/></linearGradient><linearGradient id="jira-float-3-b" gradientUnits="userSpaceOnUse" x1="16.641" y1="15.564" x2="10.957" y2="21.094" gradientTransform="scale(4)"><stop offset=".176" stop-color="#0052cc"/><stop offset="1" stop-color="#2684ff"/></linearGradient></defs><path d="M108.023 16H61.805c0 11.52 9.324 20.848 20.847 20.848h8.5v8.226c0 11.52 9.328 20.848 20.848 20.848V19.977A3.98 3.98 0 00108.023 16zm0 0" fill="#2684ff"/><path d="M85.121 39.04H38.902c0 11.519 9.325 20.847 20.844 20.847h8.504v8.226c0 11.52 9.328 20.848 20.848 20.848V43.016a3.983 3.983 0 00-3.977-3.977zm0 0" fill="url(#jira-float-3-a)"/><path d="M62.219 62.078H16c0 11.524 9.324 20.848 20.848 20.848h8.5v8.23c0 11.52 9.328 20.844 20.847 20.844V66.059a3.984 3.984 0 00-3.976-3.98zm0 0" fill="url(#jira-float-3-b)"/></svg>
+    </div>
+    <div class="floating-logo floating-logo-4">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="jira-float-4-a" gradientUnits="userSpaceOnUse" x1="22.034" y1="9.773" x2="17.118" y2="14.842" gradientTransform="scale(4)"><stop offset=".176" stop-color="#0052cc"/><stop offset="1" stop-color="#2684ff"/></linearGradient><linearGradient id="jira-float-4-b" gradientUnits="userSpaceOnUse" x1="16.641" y1="15.564" x2="10.957" y2="21.094" gradientTransform="scale(4)"><stop offset=".176" stop-color="#0052cc"/><stop offset="1" stop-color="#2684ff"/></linearGradient></defs><path d="M108.023 16H61.805c0 11.52 9.324 20.848 20.847 20.848h8.5v8.226c0 11.52 9.328 20.848 20.848 20.848V19.977A3.98 3.98 0 00108.023 16zm0 0" fill="#2684ff"/><path d="M85.121 39.04H38.902c0 11.519 9.325 20.847 20.844 20.847h8.504v8.226c0 11.52 9.328 20.848 20.848 20.848V43.016a3.983 3.983 0 00-3.977-3.977zm0 0" fill="url(#jira-float-4-a)"/><path d="M62.219 62.078H16c0 11.524 9.324 20.848 20.848 20.848h8.5v8.23c0 11.52 9.328 20.844 20.847 20.844V66.059a3.984 3.984 0 00-3.976-3.98zm0 0" fill="url(#jira-float-4-b)"/></svg>
+    </div>
+    <div class="floating-logo floating-logo-5">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="jira-float-5-a" gradientUnits="userSpaceOnUse" x1="22.034" y1="9.773" x2="17.118" y2="14.842" gradientTransform="scale(4)"><stop offset=".176" stop-color="#0052cc"/><stop offset="1" stop-color="#2684ff"/></linearGradient><linearGradient id="jira-float-5-b" gradientUnits="userSpaceOnUse" x1="16.641" y1="15.564" x2="10.957" y2="21.094" gradientTransform="scale(4)"><stop offset=".176" stop-color="#0052cc"/><stop offset="1" stop-color="#2684ff"/></linearGradient></defs><path d="M108.023 16H61.805c0 11.52 9.324 20.848 20.847 20.848h8.5v8.226c0 11.52 9.328 20.848 20.848 20.848V19.977A3.98 3.98 0 00108.023 16zm0 0" fill="#2684ff"/><path d="M85.121 39.04H38.902c0 11.519 9.325 20.847 20.844 20.847h8.504v8.226c0 11.52 9.328 20.848 20.848 20.848V43.016a3.983 3.983 0 00-3.977-3.977zm0 0" fill="url(#jira-float-5-a)"/><path d="M62.219 62.078H16c0 11.524 9.324 20.848 20.848 20.848h8.5v8.23c0 11.52 9.328 20.844 20.847 20.844V66.059a3.984 3.984 0 00-3.976-3.98zm0 0" fill="url(#jira-float-5-b)"/></svg>
+    </div>
+
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="#" class="logo">
+                    <div class="logo-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><defs><linearGradient id="jira-original-a" gradientUnits="userSpaceOnUse" x1="22.034" y1="9.773" x2="17.118" y2="14.842" gradientTransform="scale(4)"><stop offset=".176" stop-color="#0052cc"/><stop offset="1" stop-color="#2684ff"/></linearGradient><linearGradient id="jira-original-b" gradientUnits="userSpaceOnUse" x1="16.641" y1="15.564" x2="10.957" y2="21.094" gradientTransform="scale(4)"><stop offset=".176" stop-color="#0052cc"/><stop offset="1" stop-color="#2684ff"/></linearGradient></defs><path d="M108.023 16H61.805c0 11.52 9.324 20.848 20.847 20.848h8.5v8.226c0 11.52 9.328 20.848 20.848 20.848V19.977A3.98 3.98 0 00108.023 16zm0 0" fill="#2684ff"/><path d="M85.121 39.04H38.902c0 11.519 9.325 20.847 20.844 20.847h8.504v8.226c0 11.52 9.328 20.848 20.848 20.848V43.016a3.983 3.983 0 00-3.977-3.977zm0 0" fill="url(#jira-original-a)"/><path d="M62.219 62.078H16c0 11.524 9.324 20.848 20.848 20.848h8.5v8.23c0 11.52 9.328 20.844 20.847 20.844V66.059a3.984 3.984 0 00-3.976-3.98zm0 0" fill="url(#jira-original-b)"/></svg>
+                    </div>
+                    <span>Jira MCP</span>
+                </a>
+                <nav>
+                    <a href="#features">Features</a>
+                    <a href="#install">Install</a>
+                    <a href="#ide-config">IDE Setup</a>
+                    <a href="#tools">Tools</a>
+                    <a href="#examples">Examples</a>
+                    <a href="https://github.com/garywenneker/jira-mcp-server">GitHub</a>
+                </nav>
+                <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <nav>
+            <a href="#features">Features</a>
+            <a href="#install">Install</a>
+            <a href="#ide-config">IDE Setup</a>
+            <a href="#tools">Tools</a>
+            <a href="#examples">Examples</a>
+            <a href="https://github.com/garywenneker/jira-mcp-server">GitHub</a>
+        </nav>
+    </div>
+
+    <main>
+        <section class="hero container">
+            <div class="badge">
+                <span>✨</span>
+                <span>v2.0.0 - Complete Jira CLI Integration</span>
+            </div>
+            <h1>Jira Automation<br>via AI</h1>
+            <p class="subtitle">Complete Jira CLI integration through Model Context Protocol. Control Jira with natural language - 48 powerful tools at your command.</p>
+            <div class="cta">
+                <a href="https://github.com/garywenneker/jira-mcp-server" class="btn btn-primary">
+                    <span>⭐</span> Get Started
+                </a>
+                <a href="#install" class="btn btn-secondary">
+                    <span>📦</span> Quick Install
+                </a>
+                <a href="https://garywenneker.github.io/jira-mcp-server/" class="btn btn-ghost" target="_blank" rel="noopener noreferrer">
+                    <span>🌐</span> Live Demo
+                </a>
+            </div>
+        </section>
+
+        <div class="stats container">
+            <div class="stat scale-in">
+                <div class="stat-num">48</div>
+                <div class="stat-label">AI Tools</div>
+            </div>
+            <div class="stat scale-in">
+                <div class="stat-num">15</div>
+                <div class="stat-label">Categories</div>
+            </div>
+            <div class="stat scale-in">
+                <div class="stat-num">100%</div>
+                <div class="stat-label">CLI Parity</div>
+            </div>
+            <div class="stat scale-in">
+                <div class="stat-num">v2.0</div>
+                <div class="stat-label">Latest</div>
+            </div>
+        </div>
+
+        <section id="features" class="container">
+            <h2 class="section-title fade-in-up">What's New in v2.0</h2>
+            <div class="features">
+                <div class="card fade-in">
+                    <div class="card-icon">⏱️</div>
+                    <h3 class="card-title">Worklog Management</h3>
+                    <p class="card-desc">Add time entries, track work hours, and generate comprehensive worklog reports</p>
+                </div>
+                <div class="card fade-in">
+                    <div class="card-icon">🔗</div>
+                    <h3 class="card-title">Issue Linking</h3>
+                    <p class="card-desc">Create relationships between issues: blocks, relates to, duplicates</p>
+                </div>
+                <div class="card fade-in">
+                    <div class="card-icon">🏃</div>
+                    <h3 class="card-title">Sprint Operations</h3>
+                    <p class="card-desc">Add/remove issues from sprints, track sprint progress, manage backlogs</p>
+                </div>
+                <div class="card fade-in">
+                    <div class="card-icon">🏷️</div>
+                    <h3 class="card-title">Label Management</h3>
+                    <p class="card-desc">Organize issues with labels, batch updates, smart categorization</p>
+                </div>
+                <div class="card fade-in">
+                    <div class="card-icon">📊</div>
+                    <h3 class="card-title">Data Export</h3>
+                    <p class="card-desc">Export to CSV/JSON with custom JQL queries for analysis</p>
+                </div>
+                <div class="card fade-in">
+                    <div class="card-icon">🤖</div>
+                    <h3 class="card-title">AI-Powered</h3>
+                    <p class="card-desc">Natural language commands via Model Context Protocol</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="install" class="container">
+            <h2 class="section-title fade-in-up">Quick Installation</h2>
+            <div class="install-steps fade-in-up">
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <div class="step-content">
+                        <div class="step-title">Get API Token</div>
+                        <div class="step-desc">Visit <a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank" rel="noopener noreferrer" style="color: var(--primary)">Atlassian API Tokens</a> and create a new token</div>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <div class="step-content">
+                        <div class="step-title">Install Dependencies</div>
+                        <div class="step-desc">Run <code style="color: var(--primary)">npm install</code> in the project directory</div>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <div class="step-content">
+                        <div class="step-title">Configure MCP</div>
+                        <div class="step-desc">Add configuration to your MCP config file (see below)</div>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">4</div>
+                    <div class="step-content">
+                        <div class="step-title">Start Using</div>
+                        <div class="step-desc">Restart your AI assistant and start automating Jira!</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="code-block fade-in-up" style="margin-top: 2rem;">
+                <div class="code-header">
+                    <span class="dot" style="background:#FF5F56"></span>
+                    <span class="dot" style="background:#FFBD2E"></span>
+                    <span class="dot" style="background:#27C93F"></span>
+                    <span>.cursor/mcp-config.json (NPM Package)</span>
+                    <button class="copy-btn" onclick="copyCode(this)">
+                        <span class="copy-icon">📋</span>
+                        <span class="copy-text">Copy</span>
+                    </button>
+                </div>
+                <div class="code-content code-highlight">
+                    <div class="line-numbers">
+<span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+                    </div>
+                    <pre><code class="language-json">{
+  <span style="color: #8BE9FD">"mcpServers"</span>: {
+    <span style="color: #8BE9FD">"JiraMCP"</span>: {
+      <span style="color: #8BE9FD">"type"</span>: <span style="color: #F1FA8C">"stdio"</span>,
+      <span style="color: #8BE9FD">"command"</span>: <span style="color: #F1FA8C">"npx"</span>,
+      <span style="color: #8BE9FD">"args"</span>: [<span style="color: #F1FA8C">"@garyw/jira-mcp-server@latest"</span>],
+      <span style="color: #8BE9FD">"env"</span>: {
+        <span style="color: #8BE9FD">"JIRA_BASE_URL"</span>: <span style="color: #F1FA8C">"https://yourcompany.atlassian.net"</span>,
+        <span style="color: #8BE9FD">"JIRA_USERNAME"</span>: <span style="color: #F1FA8C">"your@email.com"</span>,
+        <span style="color: #8BE9FD">"JIRA_API_TOKEN"</span>: <span style="color: #F1FA8C">"your-api-token"</span>
+      }
+    }
+  }
+}</code></pre>
+                </div>
+            </div>
+
+            <p style="text-align: center; color: var(--text-muted); margin: 2rem 0 1rem; font-size: 0.85rem;">
+                Or use a local installation:
+            </p>
+
+            <div class="code-block fade-in-up">
+                <div class="code-header">
+                    <span class="dot" style="background:#FF5F56"></span>
+                    <span class="dot" style="background:#FFBD2E"></span>
+                    <span class="dot" style="background:#27C93F"></span>
+                    <span>.cursor/mcp-config.json (Local Path)</span>
+                    <button class="copy-btn" onclick="copyCode(this)">
+                        <span class="copy-icon">📋</span>
+                        <span class="copy-text">Copy</span>
+                    </button>
+                </div>
+                <div class="code-content code-highlight">
+                    <div class="line-numbers">
+<span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+<span>14</span>
+                    </div>
+                    <pre><code class="language-json">{
+  <span style="color: #8BE9FD">"mcpServers"</span>: {
+    <span style="color: #8BE9FD">"JiraMCP"</span>: {
+      <span style="color: #8BE9FD">"type"</span>: <span style="color: #F1FA8C">"stdio"</span>,
+      <span style="color: #8BE9FD">"command"</span>: <span style="color: #F1FA8C">"node"</span>,
+      <span style="color: #8BE9FD">"args"</span>: [<span style="color: #F1FA8C">"/path/to/jira-mcp-server/src/index.js"</span>],
+      <span style="color: #8BE9FD">"env"</span>: {
+        <span style="color: #8BE9FD">"JIRA_BASE_URL"</span>: <span style="color: #F1FA8C">"https://yourcompany.atlassian.net"</span>,
+        <span style="color: #8BE9FD">"JIRA_USERNAME"</span>: <span style="color: #F1FA8C">"your@email.com"</span>,
+        <span style="color: #8BE9FD">"JIRA_API_TOKEN"</span>: <span style="color: #F1FA8C">"your-api-token"</span>
+      }
+    }
+  }
+}</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <section id="ide-config" class="container">
+            <h2 class="section-title fade-in-up">IDE Configuration</h2>
+            <p class="ide-config-intro fade-in-up">
+                Configure the Jira MCP server in your favorite environment. These quick-start templates cover the most common IDEs and assistants so you can connect in seconds.
+            </p>
+            <div class="ide-tabs" role="tablist">
+                <button class="ide-tab active" type="button" role="tab" aria-selected="true" data-target="ide-panel-vscode">
+                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vscode/vscode-original.svg" alt="VS Code logo" loading="lazy">
+                    <span>VS Code (Continue)</span>
+                </button>
+                <button class="ide-tab" type="button" role="tab" aria-selected="false" data-target="ide-panel-cursor">
+                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg" alt="Cursor logo" loading="lazy">
+                    <span>Cursor IDE</span>
+                </button>
+                <button class="ide-tab" type="button" role="tab" aria-selected="false" data-target="ide-panel-jetbrains">
+                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/jetbrains/jetbrains-original.svg" alt="JetBrains logo" loading="lazy">
+                    <span>JetBrains AI Assistant</span>
+                </button>
+                <button class="ide-tab" type="button" role="tab" aria-selected="false" data-target="ide-panel-claude">
+                    <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/slack/slack-original.svg" alt="Claude logo" loading="lazy">
+                    <span>Claude Desktop &amp; Web</span>
+                </button>
+            </div>
+
+            <div class="ide-panels">
+                <div class="ide-panel active fade-in" id="ide-panel-vscode" role="tabpanel">
+                    <p class="ide-panel-desc">Install the <a href="https://continue.dev" target="_blank" rel="noopener noreferrer" style="color: var(--primary)">Continue</a> AI copilot for VS Code and drop this snippet into <code>.continue/config.json</code> (or use the Continue settings UI) to register the MCP server.</p>
+                    <div class="code-block fade-in-up">
+                        <div class="code-header">
+                            <span class="dot" style="background:#FF5F56"></span>
+                            <span class="dot" style="background:#FFBD2E"></span>
+                            <span class="dot" style="background:#27C93F"></span>
+                            <span>.continue/config.json</span>
+                            <button class="copy-btn" onclick="copyCode(this)">
+                                <span class="copy-icon">📋</span>
+                                <span class="copy-text">Copy</span>
+                            </button>
+                        </div>
+                        <div class="code-content code-highlight">
+                            <div class="line-numbers">
+<span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+                            </div>
+                            <pre><code class="language-json">{
+  <span style="color: #8BE9FD">"mcpServers"</span>: {
+    <span style="color: #8BE9FD">"jira-mcp"</span>: {
+      <span style="color: #8BE9FD">"command"</span>: <span style="color: #F1FA8C">"node"</span>,
+      <span style="color: #8BE9FD">"args"</span>: [<span style="color: #F1FA8C">"${workspaceFolder}/src/index.js"</span>],
+      <span style="color: #8BE9FD">"env"</span>: {
+        <span style="color: #8BE9FD">"JIRA_BASE_URL"</span>: <span style="color: #F1FA8C">"https://yourcompany.atlassian.net"</span>,
+        <span style="color: #8BE9FD">"JIRA_USERNAME"</span>: <span style="color: #F1FA8C">"your@email.com"</span>,
+        <span style="color: #8BE9FD">"JIRA_API_TOKEN"</span>: <span style="color: #F1FA8C">"${env:JIRA_API_TOKEN}"</span>
+      }
+    }
+  }
+}
+</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ide-panel fade-in" id="ide-panel-cursor" role="tabpanel">
+                    <p class="ide-panel-desc">Create or update <code>.cursor/mcp-config.json</code> in your workspace. Cursor reloads the server automatically on save.</p>
+                    <div class="code-block fade-in-up">
+                        <div class="code-header">
+                            <span class="dot" style="background:#FF5F56"></span>
+                            <span class="dot" style="background:#FFBD2E"></span>
+                            <span class="dot" style="background:#27C93F"></span>
+                            <span>.cursor/mcp-config.json</span>
+                            <button class="copy-btn" onclick="copyCode(this)">
+                                <span class="copy-icon">📋</span>
+                                <span class="copy-text">Copy</span>
+                            </button>
+                        </div>
+                        <div class="code-content code-highlight">
+                            <div class="line-numbers">
+<span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+                            </div>
+                            <pre><code class="language-json">{
+  <span style="color: #8BE9FD">"mcpServers"</span>: {
+    <span style="color: #8BE9FD">"JiraMCP"</span>: {
+      <span style="color: #8BE9FD">"type"</span>: <span style="color: #F1FA8C">"stdio"</span>,
+      <span style="color: #8BE9FD">"command"</span>: <span style="color: #F1FA8C">"npx"</span>,
+      <span style="color: #8BE9FD">"args"</span>: [<span style="color: #F1FA8C">"@garyw/jira-mcp-server@latest"</span>],
+      <span style="color: #8BE9FD">"env"</span>: {
+        <span style="color: #8BE9FD">"JIRA_BASE_URL"</span>: <span style="color: #F1FA8C">"https://yourcompany.atlassian.net"</span>,
+        <span style="color: #8BE9FD">"JIRA_USERNAME"</span>: <span style="color: #F1FA8C">"your@email.com"</span>,
+        <span style="color: #8BE9FD">"JIRA_API_TOKEN"</span>: <span style="color: #F1FA8C">"${env:JIRA_API_TOKEN}"</span>
+      }
+    }
+  }
+}
+</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ide-panel fade-in" id="ide-panel-jetbrains" role="tabpanel">
+                    <p class="ide-panel-desc">Add a server entry in <code>~/.config/JetBrains/ai-assistant/mcp.json</code> (Linux/macOS) or <code>%APPDATA%\JetBrains\ai-assistant\mcp.json</code> on Windows.</p>
+                    <div class="code-block fade-in-up">
+                        <div class="code-header">
+                            <span class="dot" style="background:#FF5F56"></span>
+                            <span class="dot" style="background:#FFBD2E"></span>
+                            <span class="dot" style="background:#27C93F"></span>
+                            <span>ai-assistant/mcp.json</span>
+                            <button class="copy-btn" onclick="copyCode(this)">
+                                <span class="copy-icon">📋</span>
+                                <span class="copy-text">Copy</span>
+                            </button>
+                        </div>
+                        <div class="code-content code-highlight">
+                            <div class="line-numbers">
+<span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+                            </div>
+                            <pre><code class="language-json">{
+  <span style="color: #8BE9FD">"servers"</span>: {
+    <span style="color: #8BE9FD">"jira"</span>: {
+      <span style="color: #8BE9FD">"transport"</span>: <span style="color: #F1FA8C">"stdio"</span>,
+      <span style="color: #8BE9FD">"command"</span>: <span style="color: #F1FA8C">"node"</span>,
+      <span style="color: #8BE9FD">"args"</span>: [<span style="color: #F1FA8C">"/path/to/jira-mcp-server/src/index.js"</span>],
+      <span style="color: #8BE9FD">"env"</span>: {
+        <span style="color: #8BE9FD">"JIRA_BASE_URL"</span>: <span style="color: #F1FA8C">"https://yourcompany.atlassian.net"</span>,
+        <span style="color: #8BE9FD">"JIRA_USERNAME"</span>: <span style="color: #F1FA8C">"your@email.com"</span>,
+        <span style="color: #8BE9FD">"JIRA_API_TOKEN"</span>: <span style="color: #F1FA8C">"${env:JIRA_API_TOKEN}"</span>
+      }
+    }
+  }
+}
+</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ide-panel fade-in" id="ide-panel-claude" role="tabpanel">
+                    <p class="ide-panel-desc">Register the server in <code>claude_desktop_config.json</code> (Desktop) or the browser MCP settings panel.</p>
+                    <div class="code-block fade-in-up">
+                        <div class="code-header">
+                            <span class="dot" style="background:#FF5F56"></span>
+                            <span class="dot" style="background:#FFBD2E"></span>
+                            <span class="dot" style="background:#27C93F"></span>
+                            <span>claude_desktop_config.json</span>
+                            <button class="copy-btn" onclick="copyCode(this)">
+                                <span class="copy-icon">📋</span>
+                                <span class="copy-text">Copy</span>
+                            </button>
+                        </div>
+                        <div class="code-content code-highlight">
+                            <div class="line-numbers">
+<span>1</span>
+<span>2</span>
+<span>3</span>
+<span>4</span>
+<span>5</span>
+<span>6</span>
+<span>7</span>
+<span>8</span>
+<span>9</span>
+<span>10</span>
+<span>11</span>
+<span>12</span>
+<span>13</span>
+                            </div>
+                            <pre><code class="language-json">{
+  <span style="color: #8BE9FD">"mcpServers"</span>: {
+    <span style="color: #8BE9FD">"jira"</span>: {
+      <span style="color: #8BE9FD">"command"</span>: <span style="color: #F1FA8C">"npx"</span>,
+      <span style="color: #8BE9FD">"args"</span>: [<span style="color: #F1FA8C">"@garyw/jira-mcp-server@latest"</span>],
+      <span style="color: #8BE9FD">"env"</span>: {
+        <span style="color: #8BE9FD">"JIRA_BASE_URL"</span>: <span style="color: #F1FA8C">"https://yourcompany.atlassian.net"</span>,
+        <span style="color: #8BE9FD">"JIRA_USERNAME"</span>: <span style="color: #F1FA8C">"your@email.com"</span>,
+        <span style="color: #8BE9FD">"JIRA_API_TOKEN"</span>: <span style="color: #F1FA8C">"${env:JIRA_API_TOKEN}"</span>
+      }
+    }
+  }
+}
+</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="examples" class="container">
+            <h2 class="section-title fade-in-up">Usage Examples</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 2rem; font-size: 0.9rem;" class="fade-in-up">
+                Click to expand and see real-world examples
+            </p>
+            <div class="examples">
+                <div class="example fade-in" onclick="toggleExample(this)">
+                    <div class="example-header">
+                        <div class="example-title">
+                            <span class="example-icon">💡</span>
+                            <span>What You Can Do</span>
+                        </div>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <div class="example-body">
+                        <div class="example-content">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; font-size: 0.85rem;">
+                                <div>
+                                    <div style="color: var(--primary); font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                        <span>⏱️</span> Time Tracking
+                                    </div>
+                                    <div style="color: var(--text-muted); font-size: 0.8rem; line-height: 1.6;">
+                                        Log work hours with comments<br>
+                                        <span class="example-code" style="display: inline-block; margin-top: 0.25rem; padding: 0.25rem 0.5rem; background: rgba(0, 0, 0, 0.3); border-radius: 4px; font-size: 0.75rem;">
+                                            "Log 4h on PROJ-123"
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div style="color: var(--primary); font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                        <span>🏃</span> Sprint Management
+                                    </div>
+                                    <div style="color: var(--text-muted); font-size: 0.8rem; line-height: 1.6;">
+                                        Batch add/remove issues<br>
+                                        <span class="example-code" style="display: inline-block; margin-top: 0.25rem; padding: 0.25rem 0.5rem; background: rgba(0, 0, 0, 0.3); border-radius: 4px; font-size: 0.75rem;">
+                                            "Add PROJ-100 to Sprint 42"
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div style="color: var(--primary); font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                        <span>🔗</span> Issue Linking
+                                    </div>
+                                    <div style="color: var(--text-muted); font-size: 0.8rem; line-height: 1.6;">
+                                        Create dependencies<br>
+                                        <span class="example-code" style="display: inline-block; margin-top: 0.25rem; padding: 0.25rem 0.5rem; background: rgba(0, 0, 0, 0.3); border-radius: 4px; font-size: 0.75rem;">
+                                            "PROJ-200 blocks PROJ-201"
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div style="color: var(--primary); font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                        <span>🏷️</span> Label Management
+                                    </div>
+                                    <div style="color: var(--text-muted); font-size: 0.8rem; line-height: 1.6;">
+                                        Organize with labels<br>
+                                        <span class="example-code" style="display: inline-block; margin-top: 0.25rem; padding: 0.25rem 0.5rem; background: rgba(0, 0, 0, 0.3); border-radius: 4px; font-size: 0.75rem;">
+                                            "Add labels frontend, urgent"
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div style="color: var(--primary); font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                        <span>📊</span> Data Export
+                                    </div>
+                                    <div style="color: var(--text-muted); font-size: 0.8rem; line-height: 1.6;">
+                                        Export to CSV/JSON<br>
+                                        <span class="example-code" style="display: inline-block; margin-top: 0.25rem; padding: 0.25rem 0.5rem; background: rgba(0, 0, 0, 0.3); border-radius: 4px; font-size: 0.75rem;">
+                                            "Export all bugs to CSV"
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div style="color: var(--primary); font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                        <span>🔍</span> JQL Queries
+                                    </div>
+                                    <div style="color: var(--text-muted); font-size: 0.8rem; line-height: 1.6;">
+                                        Advanced filtering<br>
+                                        <span class="example-code" style="display: inline-block; margin-top: 0.25rem; padding: 0.25rem 0.5rem; background: rgba(0, 0, 0, 0.3); border-radius: 4px; font-size: 0.75rem;">
+                                            "Show high priority bugs"
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div style="color: var(--primary); font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                        <span>👁️</span> Watch & Vote
+                                    </div>
+                                    <div style="color: var(--text-muted); font-size: 0.8rem; line-height: 1.6;">
+                                        Get notifications<br>
+                                        <span class="example-code" style="display: inline-block; margin-top: 0.25rem; padding: 0.25rem 0.5rem; background: rgba(0, 0, 0, 0.3); border-radius: 4px; font-size: 0.75rem;">
+                                            "Watch and vote PROJ-456"
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div style="color: var(--primary); font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                        <span>📎</span> Attachments
+                                    </div>
+                                    <div style="color: var(--text-muted); font-size: 0.8rem; line-height: 1.6;">
+                                        Upload files<br>
+                                        <span class="example-code" style="display: inline-block; margin-top: 0.25rem; padding: 0.25rem 0.5rem; background: rgba(0, 0, 0, 0.3); border-radius: 4px; font-size: 0.75rem;">
+                                            "Attach screenshot.png"
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div style="color: var(--primary); font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                        <span>📝</span> Subtasks
+                                    </div>
+                                    <div style="color: var(--text-muted); font-size: 0.8rem; line-height: 1.6;">
+                                        Break down work<br>
+                                        <span class="example-code" style="display: inline-block; margin-top: 0.25rem; padding: 0.25rem 0.5rem; background: rgba(0, 0, 0, 0.3); border-radius: 4px; font-size: 0.75rem;">
+                                            "Create subtask for PROJ-100"
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div style="color: var(--primary); font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                        <span>🚀</span> Versions
+                                    </div>
+                                    <div style="color: var(--text-muted); font-size: 0.8rem; line-height: 1.6;">
+                                        Release management<br>
+                                        <span class="example-code" style="display: inline-block; margin-top: 0.25rem; padding: 0.25rem 0.5rem; background: rgba(0, 0, 0, 0.3); border-radius: 4px; font-size: 0.75rem;">
+                                            "Create version 2.0.0"
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div style="color: var(--primary); font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                        <span>💬</span> Comments
+                                    </div>
+                                    <div style="color: var(--text-muted); font-size: 0.8rem; line-height: 1.6;">
+                                        Collaborate easily<br>
+                                        <span class="example-code" style="display: inline-block; margin-top: 0.25rem; padding: 0.25rem 0.5rem; background: rgba(0, 0, 0, 0.3); border-radius: 4px; font-size: 0.75rem;">
+                                            "Add comment to PROJ-789"
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div style="color: var(--primary); font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                        <span>🔄</span> Transitions
+                                    </div>
+                                    <div style="color: var(--text-muted); font-size: 0.8rem; line-height: 1.6;">
+                                        Change status<br>
+                                        <span class="example-code" style="display: inline-block; margin-top: 0.25rem; padding: 0.25rem 0.5rem; background: rgba(0, 0, 0, 0.3); border-radius: 4px; font-size: 0.75rem;">
+                                            "List transitions for PROJ-100"
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 1.25rem; padding: 1rem; background: rgba(124, 77, 255, 0.1); border: 1px solid var(--secondary); border-radius: 8px; font-size: 0.85rem;">
+                                <div style="color: var(--secondary); font-weight: 600; margin-bottom: 0.5rem;">🤖 Natural Language Control</div>
+                                <div style="color: var(--text-muted); line-height: 1.6;">
+                                    Just tell the AI what you want to do in plain English. No need to remember command syntax or API endpoints.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="container">
+            <h2 class="section-title fade-in-up">Powerful JQL Queries</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 2rem; font-size: 0.9rem;" class="fade-in-up">
+                Full JQL support for advanced filtering and reporting
+            </p>
+            <div class="jql-examples">
+                <div class="jql-card fade-in">
+                    <div class="jql-header">
+                        <div class="jql-title">
+                            <span class="jql-icon">🔍</span>
+                            <span>What You Can Query</span>
+                        </div>
+                    </div>
+                    <div class="jql-body">
+                        <div class="jql-content">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; font-size: 0.85rem; color: var(--text-muted);">
+                                <div>
+                                    <div style="color: var(--primary); font-weight: 600; margin-bottom: 0.25rem;">👤 User Filters</div>
+                                    <div style="font-size: 0.8rem; line-height: 1.5;">• My open issues<br>• Unassigned issues<br>• Team workload</div>
+                                </div>
+                                <div>
+                                    <div style="color: var(--primary); font-weight: 600; margin-bottom: 0.25rem;">🐛 Issue Types</div>
+                                    <div style="font-size: 0.8rem; line-height: 1.5;">• All bugs<br>• Stories & epics<br>• Subtasks</div>
+                                </div>
+                                <div>
+                                    <div style="color: var(--primary); font-weight: 600; margin-bottom: 0.25rem;">⚡ Priority</div>
+                                    <div style="font-size: 0.8rem; line-height: 1.5;">• Critical issues<br>• High priority<br>• By severity</div>
+                                </div>
+                                <div>
+                                    <div style="color: var(--primary); font-weight: 600; margin-bottom: 0.25rem;">📅 Time-based</div>
+                                    <div style="font-size: 0.8rem; line-height: 1.5;">• Recently created<br>• Overdue items<br>• Updated today</div>
+                                </div>
+                                <div>
+                                    <div style="color: var(--primary); font-weight: 600; margin-bottom: 0.25rem;">🏃 Sprint & Status</div>
+                                    <div style="font-size: 0.8rem; line-height: 1.5;">• Current sprint<br>• Blocked items<br>• Done this week</div>
+                                </div>
+                                <div>
+                                    <div style="color: var(--primary); font-weight: 600; margin-bottom: 0.25rem;">🏷️ Organization</div>
+                                    <div style="font-size: 0.8rem; line-height: 1.5;">• By labels<br>• By components<br>• Without epic</div>
+                                </div>
+                                <div>
+                                    <div style="color: var(--primary); font-weight: 600; margin-bottom: 0.25rem;">📎 Attachments</div>
+                                    <div style="font-size: 0.8rem; line-height: 1.5;">• With files<br>• Screenshots<br>• Documents</div>
+                                </div>
+                                <div>
+                                    <div style="color: var(--primary); font-weight: 600; margin-bottom: 0.25rem;">🔗 Relations</div>
+                                    <div style="font-size: 0.8rem; line-height: 1.5;">• Linked issues<br>• Dependencies<br>• Parent/child</div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 1rem; padding: 0.875rem; background: rgba(0, 184, 212, 0.1); border: 1px solid var(--primary); border-radius: 6px; font-size: 0.8rem; color: var(--text-muted);">
+                                <strong style="color: var(--primary);">💡 Example:</strong> <code style="color: #A5D6A7; font-family: monospace;">assignee = currentUser() AND status != Done AND priority = High</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tools" class="container">
+            <h2 class="section-title fade-in-up">48 Powerful Tools</h2>
+            <div class="tools">
+                <div class="tool-category fade-in">
+                    <div class="cat-header">
+                        <span class="cat-icon">🎯</span>
+                        <h3 class="cat-title">Issue Management</h3>
+                        <span class="cat-count">15</span>
+                    </div>
+                    <div class="tool-list">List • Get • Create • Update • Delete • Clone • Link • Watch • Unwatch • Vote • Unvote • Transitions • Subtasks • Export</div>
+                </div>
+
+                <div class="tool-category fade-in">
+                    <div class="cat-header">
+                        <span class="cat-icon">⏱️</span>
+                        <h3 class="cat-title">Time Tracking</h3>
+                        <span class="cat-count">2</span>
+                    </div>
+                    <div class="tool-list">Add Worklog • List Worklogs</div>
+                </div>
+
+                <div class="tool-category fade-in">
+                    <div class="cat-header">
+                        <span class="cat-icon">🏷️</span>
+                        <h3 class="cat-title">Labels & Components</h3>
+                        <span class="cat-count">4</span>
+                    </div>
+                    <div class="tool-list">Add Labels • Remove Labels • List Components • Add Components</div>
+                </div>
+
+                <div class="tool-category fade-in">
+                    <div class="cat-header">
+                        <span class="cat-icon">🏃</span>
+                        <h3 class="cat-title">Sprint Operations</h3>
+                        <span class="cat-count">4</span>
+                    </div>
+                    <div class="tool-list">List Sprints • Sprint Issues • Add to Sprint • Remove from Sprint</div>
+                </div>
+
+                <div class="tool-category fade-in">
+                    <div class="cat-header">
+                        <span class="cat-icon">🔍</span>
+                        <h3 class="cat-title">Search & Reports</h3>
+                        <span class="cat-count">5</span>
+                    </div>
+                    <div class="tool-list">JQL Query • Bug Reports • Recent Issues • List Projects • List Epics</div>
+                </div>
+
+                <div class="tool-category fade-in">
+                    <div class="cat-header">
+                        <span class="cat-icon">📎</span>
+                        <h3 class="cat-title">Attachments</h3>
+                        <span class="cat-count">2</span>
+                    </div>
+                    <div class="tool-list">Add Attachment • List Attachments</div>
+                </div>
+
+                <div class="tool-category fade-in">
+                    <div class="cat-header">
+                        <span class="cat-icon">🎨</span>
+                        <h3 class="cat-title">Boards & Epics</h3>
+                        <span class="cat-count">4</span>
+                    </div>
+                    <div class="tool-list">List Boards • Board Issues • Epic Issues • Add to Epic</div>
+                </div>
+
+                <div class="tool-category fade-in">
+                    <div class="cat-header">
+                        <span class="cat-icon">🚀</span>
+                        <h3 class="cat-title">Versions & Releases</h3>
+                        <span class="cat-count">2</span>
+                    </div>
+                    <div class="tool-list">Create Version • List Versions</div>
+                </div>
+
+                <div class="tool-category fade-in">
+                    <div class="cat-header">
+                        <span class="cat-icon">💬</span>
+                        <h3 class="cat-title">Comments</h3>
+                        <span class="cat-count">2</span>
+                    </div>
+                    <div class="tool-list">Add Comment • List Comments</div>
+                </div>
+
+                <div class="tool-category fade-in">
+                    <div class="cat-header">
+                        <span class="cat-icon">🔧</span>
+                        <h3 class="cat-title">Utilities</h3>
+                        <span class="cat-count">3</span>
+                    </div>
+                    <div class="tool-list">Open in Browser • User Info • Server Info</div>
+                </div>
+
+                <div class="tool-category fade-in">
+                    <div class="cat-header">
+                        <span class="cat-icon">📊</span>
+                        <h3 class="cat-title">Custom Reports</h3>
+                        <span class="cat-count">5</span>
+                    </div>
+                    <div class="tool-list">PowerShell Scripts • Bug Analytics • Sprint Reports • Worklog Analysis • Custom Queries</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="container fade-in-up" style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 3rem 2rem; margin-top: 5rem;">
+            <h2 class="section-title" style="margin-bottom: 1rem;">🚀 Ready to Automate?</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+                Join developers using AI to streamline Jira workflows. Complete CLI integration, natural language control, zero hassle.
+            </p>
+            <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+                <a href="https://github.com/garywenneker/jira-mcp-server" class="btn btn-primary">
+                    <span>⭐</span> Star on GitHub
+                </a>
+                <a href="https://github.com/garywenneker/jira-mcp-server#readme" class="btn btn-secondary">
+                    <span>📚</span> Read Full Docs
+                </a>
+                <a href="https://github.com/garywenneker/jira-mcp-server/blob/main/CONTRIBUTING.md" class="btn btn-secondary">
+                    <span>🤝</span> Contribute
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Jira MCP Server</h3>
+                <p>Complete Jira CLI integration via Model Context Protocol. Control Jira with natural language.</p>
+                <p style="margin-top: 1rem;">v2.0.0 • MIT License</p>
+            </div>
+            <div class="footer-section">
+                <h3>Resources</h3>
+                <a href="https://garywenneker.github.io/jira-mcp-server/" target="_blank" rel="noopener noreferrer">
+                    <span class="footer-link-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" role="presentation">
+                            <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm7.938 9a8.002 8.002 0 0 0-7.062-7.938c1.218 1.31 2.16 3.403 2.55 5.938h4.512Zm-.082 2h-4.512c-.39 2.535-1.332 4.628-2.55 5.938A8.002 8.002 0 0 0 19.856 13ZM11 3.062A8.002 8.002 0 0 0 4.062 11H8.5c.36-2.424 1.246-4.42 2.5-5.726V3.062ZM4.062 13A8.002 8.002 0 0 0 11 20.938V16.726C9.746 15.42 8.86 13.424 8.5 13H4.062Zm7.938-.274V20.94A8.002 8.002 0 0 0 19.938 13H15.5c-.36.424-1.246 2.42-2.5 3.726Z" fill-rule="evenodd" clip-rule="evenodd" />
+                        </svg>
+                    </span>
+                    <span>Live Demo</span>
+                </a>
+                <a href="https://github.com/garywenneker/jira-mcp-server#readme">
+                    <span class="footer-link-icon">
+                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/readthedocs/readthedocs-original.svg" alt="Read the Docs icon" loading="lazy">
+                    </span>
+                    <span>Documentation</span>
+                </a>
+                <a href="https://github.com/garywenneker/jira-mcp-server/blob/main/CONTRIBUTING.md">
+                    <span class="footer-link-icon">
+                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg" alt="Git icon" loading="lazy">
+                    </span>
+                    <span>Contributing Guide</span>
+                </a>
+                <a href="https://github.com/garywenneker/jira-mcp-server/issues">
+                    <span class="footer-link-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" role="presentation">
+                            <path d="M11 2a1 1 0 0 1 2 0v1.062a7.03 7.03 0 0 1 3.178 1.318l1.12-1.12a1 1 0 1 1 1.414 1.415l-1.017 1.017A6.97 6.97 0 0 1 18 9h2a1 1 0 1 1 0 2h-2v2h2a1 1 0 1 1 0 2h-2c0 3.292-2.626 5.978-5.894 5.998L14 22a1 1 0 1 1-2 0v-2h-0.106C8.626 19.978 6 17.292 6 14H4a1 1 0 1 1 0-2h2v-2H4a1 1 0 1 1 0-2h2c0-1.72.646-3.288 1.717-4.475L6.7 2.675a1 1 0 1 1 1.414-1.414l1.12 1.12A7.03 7.03 0 0 1 11 3.062V2Zm-3 7v2h8V9a4 4 0 1 0-8 0Zm0 4c0 2.21 1.79 4 4 4s4-1.79 4-4h-8Z" fill-rule="evenodd" clip-rule="evenodd" />
+                        </svg>
+                    </span>
+                    <span>Report Issues</span>
+                </a>
+                <a href="https://github.com/garywenneker/jira-mcp-server/discussions">
+                    <span class="footer-link-icon">
+                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" alt="GitHub icon" loading="lazy">
+                    </span>
+                    <span>Discussions</span>
+                </a>
+            </div>
+            <div class="footer-section">
+                <h3>References</h3>
+                <a href="https://developer.atlassian.com/cloud/jira/platform/rest/v3/">
+                    <span class="footer-link-icon">
+                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/jira/jira-original.svg" alt="Jira icon" loading="lazy">
+                    </span>
+                    <span>Jira REST API</span>
+                </a>
+                <a href="https://github.com/ankitpokhrel/jira-cli">
+                    <span class="footer-link-icon">
+                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/bash/bash-original.svg" alt="Bash icon" loading="lazy">
+                    </span>
+                    <span>Jira CLI</span>
+                </a>
+                <a href="https://modelcontextprotocol.io">
+                    <span class="footer-link-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" role="presentation">
+                            <path d="M11 3a2 2 0 0 1 4 0v1h1a2 2 0 0 1 2 2v2.268a2.5 2.5 0 1 0 0 4.464V15a2 2 0 0 1-2 2h-1v1a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-1H8a2 2 0 0 1-2-2v-1h-1a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2h1V6a2 2 0 0 1 2-2h3V3Z" fill-rule="evenodd" clip-rule="evenodd" />
+                        </svg>
+                    </span>
+                    <span>MCP Specification</span>
+                </a>
+                <a href="https://id.atlassian.com/manage-profile/security/api-tokens">
+                    <span class="footer-link-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" role="presentation">
+                            <path d="M14.5 2a5.5 5.5 0 0 0-4.92 8.03l-5.79 5.8a1 1 0 0 0-.29.7V19a1 1 0 0 0 1 1h2v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2h2.59l1.7-1.7A5.5 5.5 0 1 0 14.5 2Zm0 2a3.5 3.5 0 1 1-2.474 5.975A3.5 3.5 0 0 1 14.5 4Zm-4.4 7.4a5.5 5.5 0 0 0 1.913 1.915l-5.013 5.013V17.4Z" fill-rule="evenodd" clip-rule="evenodd" />
+                        </svg>
+                    </span>
+                    <span>Get API Token</span>
+                </a>
+            </div>
+            <div class="footer-section">
+                <h3>Community</h3>
+                <a href="https://github.com/garywenneker/jira-mcp-server">
+                    <span class="footer-link-icon">
+                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" alt="GitHub icon" loading="lazy">
+                    </span>
+                    <span>GitHub Repository</span>
+                </a>
+                <a href="https://github.com/garywenneker/jira-mcp-server/wiki">
+                    <span class="footer-link-icon">
+                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/markdown/markdown-original.svg" alt="Markdown icon" loading="lazy">
+                    </span>
+                    <span>Wiki</span>
+                </a>
+                <a href="https://github.com/garywenneker/jira-mcp-server/releases">
+                    <span class="footer-link-icon">
+                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg" alt="Git icon" loading="lazy">
+                    </span>
+                    <span>Changelog</span>
+                </a>
+                <a href="https://github.com/garywenneker/jira-mcp-server/stargazers">
+                    <span class="footer-link-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" role="presentation">
+                            <path d="M12 2.75a.75.75 0 0 1 .678.422l1.872 3.792 4.185.609a.75.75 0 0 1 .416 1.28l-3.028 2.951.715 4.17a.75.75 0 0 1-1.088.791L12 14.95l-3.75 1.965a.75.75 0 0 1-1.088-.79l.715-4.172-3.028-2.95a.75.75 0 0 1 .416-1.281l4.185-.608 1.872-3.793A.75.75 0 0 1 12 2.75Z" fill-rule="evenodd" clip-rule="evenodd" />
+                        </svg>
+                    </span>
+                    <span>Stargazers</span>
+                </a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>Made with ❤️ for the MCP community • Node.js ≥18.0.0 required • Supports Jira Cloud & Server</p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha512-S7kW73TAe1Ben+PiY2PCozOpd6x9qANCq+t7GuSxo+pZIJpXrn3215Sfc0NLrYkI66mEQwDUYf68mrTYKIQ6IQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js" integrity="sha512-lzEDXQhDJWGTr4F7S2h3mEund7Bb0IqdU30KxMk8yXkhsWE5dqgo9QnoXpL5mR5OIRGvfdfcWXoQGrHMh12xGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.Prism) {
+                Prism.highlightAll();
+            }
+        });
+
+        // Mobile Menu Toggle
+        const menuToggle = document.getElementById('menuToggle');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const mobileOverlay = document.getElementById('mobileOverlay');
+        const mobileMenuLinks = document.querySelectorAll('.mobile-menu nav a');
+
+        function openMenu() {
+            menuToggle.classList.add('active');
+            mobileMenu.classList.add('active');
+            mobileOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMenu() {
+            menuToggle.classList.remove('active');
+            mobileMenu.classList.remove('active');
+            mobileOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Toggle menu on button click
+        menuToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (mobileMenu.classList.contains('active')) {
+                closeMenu();
+            } else {
+                openMenu();
+            }
+        });
+
+        // Close menu when clicking overlay
+        mobileOverlay.addEventListener('click', closeMenu);
+
+        // Close menu when clicking a link
+        mobileMenuLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                closeMenu();
+            });
+        });
+
+        // Close menu on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && mobileMenu.classList.contains('active')) {
+                closeMenu();
+            }
+        });
+
+        // Toggle example expand/collapse
+        function toggleExample(element) {
+            element.classList.toggle('expanded');
+        }
+
+        // Copy to clipboard function
+        function copyCode(button) {
+            const codeBlock = button.closest('.code-block');
+            const code = codeBlock.querySelector('code').innerText;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                const icon = button.querySelector('.copy-icon');
+                const text = button.querySelector('.copy-text');
+                const originalIcon = icon.textContent;
+                const originalText = text.textContent;
+                
+                icon.textContent = '✓';
+                text.textContent = 'Copied!';
+                button.classList.add('copied');
+                
+                setTimeout(() => {
+                    icon.textContent = originalIcon;
+                    text.textContent = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
+        }
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        // Observe all animated elements
+        document.querySelectorAll('.fade-in, .fade-in-up, .slide-in-left, .slide-in-right, .scale-in').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Add parallax effect to background
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const bg = document.querySelector('.bg');
+            if (bg) {
+                bg.style.transform = `translateY(${scrolled * 0.5}px)`;
+            }
+        });
+
+        // IDE Tabs
+        const ideTabs = document.querySelectorAll('.ide-tab');
+        const idePanels = document.querySelectorAll('.ide-panel');
+
+        ideTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetId = tab.getAttribute('data-target');
+
+                ideTabs.forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.setAttribute('aria-selected', 'false');
+                });
+
+                idePanels.forEach(panel => panel.classList.remove('active'));
+
+                tab.classList.add('active');
+                tab.setAttribute('aria-selected', 'true');
+
+                const targetPanel = document.getElementById(targetId);
+                if (targetPanel) {
+                    targetPanel.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

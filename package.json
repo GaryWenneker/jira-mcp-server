@@ -1,0 +1,53 @@
+{
+  "name": "@garyw/jira-mcp-server",
+  "version": "2.0.1",
+  "description": "Complete Jira CLI integration via Model Context Protocol - 48 AI-powered tools for issue management, worklog tracking, sprint operations, and more",
+  "main": "src/index.js",
+  "type": "module",
+  "bin": {
+    "jira-mcp-server": "src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "jira",
+    "atlassian",
+    "jira-cli",
+    "issue-tracking",
+    "project-management",
+    "automation",
+    "ai",
+    "cursor",
+    "claude",
+    "continue",
+    "worklog",
+    "sprint",
+    "agile"
+  ],
+  "author": "Gary Wenneker <gary@wenneker.org> (https://github.com/GaryWenneker)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GaryWenneker/jira-mcp-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/GaryWenneker/jira-mcp-server/issues"
+  },
+  "homepage": "https://garywenneker.github.io/jira-mcp-server/",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.20.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "src/",
+    "scripts/",
+    "README.md",
+    "LICENSE"
+  ]
+}

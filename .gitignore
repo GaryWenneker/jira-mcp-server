@@ -1,0 +1,52 @@
+# Jira MCP Server - Ignore File
+
+# MCP Configuration (contains secrets!)
+.cursor/
+mcp-config.json
+mcp-sitecore-config.json
+
+# API Tokens and Credentials
+*.env
+.env*
+config.json
+secrets.json
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+yarn.lock
+
+# Logs
+logs/
+*.log
+
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Exports
+*.csv
+jira-*.csv
+jira-*.json
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# PowerShell
+*.ps1xml
+
+# Build files
+dist/
+build/
